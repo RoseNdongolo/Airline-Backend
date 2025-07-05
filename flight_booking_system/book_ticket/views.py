@@ -63,18 +63,26 @@ def get_user(request):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [AllowAny]
+from rest_framework import viewsets
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 
 class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # Allow anyone to access
 
     def get_queryset(self):
-        return Booking.objects.filter(user=self.request.user)
+        if self.request.user.is_authenticated:
+            return Booking.objects.filter(user=self.request.user)
+        return Booking.objects.none()  # Return empty queryset for anonymous users
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        if self.request.user.is_authenticated:
+            serializer.save(user=self.request.user)
+        else:
+            serializer.save()  # Save without user for anonymous access
 
     def update(self, request, *args, **kwargs):
         booking = self.get_object()
@@ -91,16 +99,7 @@ class BookingViewSet(viewsets.ModelViewSet):
 class FlightViewSet(viewsets.ModelViewSet):
     queryset = Flight.objects.all()
     serializer_class = FlightSerializer
-
-    def get_permissions(self):
-        """
-        Instantiates and returns the list of permissions that this view requires.
-        """
-        if self.action in ['list', 'retrieve']:
-            permission_classes = [AllowAny]
-        else:
-            permission_classes = [IsAuthenticated]
-        return [permission() for permission in permission_classes]
+    permission_classes = [AllowAny]  # Allow anyone to access
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -120,24 +119,24 @@ class FlightViewSet(viewsets.ModelViewSet):
 class AircraftViewSet(viewsets.ModelViewSet):
     queryset = Aircraft.objects.all()
     serializer_class = AircraftSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # Allow anyone to access
 
 class AirlineViewSet(viewsets.ModelViewSet):
     queryset = Airline.objects.all()
     serializer_class = AirlineSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # Allow anyone to access
 
 class AirportViewSet(viewsets.ModelViewSet):
     queryset = Airport.objects.all()
     serializer_class = AirportSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # Allow anyone to access
 
 class PassengerViewSet(viewsets.ModelViewSet):
     queryset = Passenger.objects.all()
     serializer_class = PassengerSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # Allow anyone to access
 
 class PaymentViewSet(viewsets.ModelViewSet):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # Allow anyone to access
